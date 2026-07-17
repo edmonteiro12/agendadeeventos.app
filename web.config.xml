@@ -1,0 +1,57 @@
+<!-- web.config - Para servidores IIS -->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+        <rewrite>
+            <rules>
+                <rule name="Redirect to HTTPS" stopProcessing="true">
+                    <match url="^(.*)$" />
+                    <conditions>
+                        <add input="{HTTPS}" pattern="off" />
+                    </conditions>
+                    <action type="Redirect" url="https://{HTTP_HOST}/{R:1}" redirectType="Permanent" />
+                </rule>
+                <rule name="API Routes" stopProcessing="true">
+                    <match url="^api/(.*)$" />
+                    <action type="Rewrite" url="backend/api/{R:1}" />
+                </rule>
+            </rules>
+        </rewrite>
+        <caching>
+            <profiles>
+                <add extension=".css" policy="CacheUntilChange" kernelCachePolicy="CacheUntilChange" />
+                <add extension=".js" policy="CacheUntilChange" kernelCachePolicy="CacheUntilChange" />
+                <add extension=".png" policy="CacheUntilChange" kernelCachePolicy="CacheUntilChange" />
+            </profiles>
+        </caching>
+        <security>
+            <requestFiltering>
+                <denyUrlSequences>
+                    <add sequence="." />
+                </denyUrlSequences>
+                <fileExtensions>
+                    <add fileExtension=".sql" allowed="false" />
+                    <add fileExtension=".log" allowed="false" />
+                    <add fileExtension=".lock" allowed="false" />
+                </fileExtensions>
+            </requestFiltering>
+        </security>
+        <cors>
+            <add origin="*" allowed="true">
+                <allowHeaders>
+                    <add header="Content-Type" />
+                    <add header="Authorization" />
+                    <add header="X-Requested-With" />
+                </allowHeaders>
+                <allowMethods>
+                    <add method="GET" />
+                    <add method="POST" />
+                    <add method="PUT" />
+                    <add method="DELETE" />
+                    <add method="OPTIONS" />
+                </allowMethods>
+            </add>
+        </cors>
+    </system.webServer>
+</configuration>

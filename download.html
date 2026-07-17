@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baixar App - Agenda+</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #f6f9fc, #e9f0f5); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .download-container { max-width: 900px; width: 100%; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-radius: 48px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); text-align: center; }
+        .logo { font-size: 3.5rem; color: #2a7faa; margin-bottom: 8px; }
+        h1 { color: #0b2a3b; font-weight: 700; font-size: 2.2rem; }
+        .subtitle { color: #6b8b9e; margin-bottom: 30px; font-size: 1.1rem; }
+        .app-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 30px 0; }
+        .app-card { background: white; border-radius: 24px; padding: 30px 20px; border: 2px solid #eef4f8; transition: 0.3s; cursor: pointer; }
+        .app-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.1); border-color: #2a7faa; }
+        .app-card i { font-size: 3rem; margin-bottom: 12px; }
+        .app-card .icon-blue { color: #2a7faa; }
+        .app-card .icon-green { color: #0f7b3a; }
+        .app-card .icon-orange { color: #d97706; }
+        .app-card .icon-purple { color: #7c3aed; }
+        .app-card .icon-black { color: #1a1a1a; }
+        .app-card h3 { color: #0b2a3b; font-size: 1.1rem; }
+        .app-card p { color: #6b8b9e; font-size: 0.85rem; margin-top: 4px; }
+        .btn-download { display: inline-block; background: #1f5e7a; color: white; padding: 14px 32px; border-radius: 60px; font-weight: 600; text-decoration: none; transition: 0.2s; border: none; cursor: pointer; font-size: 1rem; }
+        .btn-download:hover { background: #134a63; transform: scale(1.02); }
+        .btn-download i { margin-right: 10px; }
+        .btn-secondary { background: #e4edf3; color: #1a3b4e; }
+        .btn-secondary:hover { background: #cbdde9; }
+        .qr-section { margin: 20px 0; }
+        .qr-code { margin: 8px auto; padding: 20px; background: white; border-radius: 16px; display: inline-block; border: 2px solid #eef4f8; }
+        .qr-url { font-size: 0.75rem; color: #6b8b9e; margin-top: 8px; word-break: break-all; max-width: 200px; }
+        .divider { border: none; border-top: 2px solid #eef4f8; margin: 25px 0; }
+        .instructions { text-align: left; background: #f8fafc; border-radius: 16px; padding: 20px 24px; margin-top: 20px; }
+        .instructions h4 { color: #0b2a3b; margin-bottom: 12px; }
+        .instructions li { color: #4a6b7e; margin: 8px 0; list-style: none; }
+        .instructions li i { color: #2a7faa; margin-right: 10px; width: 20px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 40px; font-size: 0.7rem; font-weight: 600; margin-top: 8px; }
+        .badge-new { background: #d2f0df; color: #0f7b3a; }
+        .badge-popular { background: #ffe1d9; color: #b14b2a; }
+        .card-disabled { opacity: 0.5; cursor: not-allowed; }
+        .card-disabled:hover { transform: none; box-shadow: none; border-color: #eef4f8; }
+        @media (max-width: 600px) {
+            .download-container { padding: 20px; }
+            .app-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .app-card { padding: 20px 12px; }
+            .app-card i { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="download-container">
+    <div class="logo"><i class="fas fa-calendar-check"></i></div>
+    <h1>📱 Baixar Agenda+</h1>
+    <p class="subtitle">Baixe o aplicativo ou acesse pelo navegador em qualquer dispositivo</p>
+
+    <!-- QR Code -->
+    <div class="qr-section">
+        <p style="color:#6b8b9e; font-size:0.85rem; margin-bottom:8px;">
+            <i class="fas fa-qrcode"></i> Escaneie para abrir no celular
+        </p>
+        <div class="qr-code">
+            <div id="qrcode"></div>
+        </div>
+        <div class="qr-url" id="qrUrl"></div>
+    </div>
+
+    <div class="app-grid">
+        <!-- Windows -->
+        <div class="app-card" onclick="downloadApp('windows')">
+            <i class="fab fa-windows icon-blue"></i>
+            <h3>Windows</h3>
+            <p>Instalador .exe</p>
+            <span class="badge badge-popular">⭐ Popular</span>
+        </div>
+
+        <!-- macOS -->
+        <div class="app-card" onclick="downloadApp('mac')">
+            <i class="fab fa-apple icon-black"></i>
+            <h3>macOS</h3>
+            <p>Arquivo .dmg</p>
+        </div>
+
+        <!-- Android -->
+        <div class="app-card" onclick="downloadApp('android')">
+            <i class="fab fa-android icon-green"></i>
+            <h3>Android</h3>
+            <p>APK para celular</p>
+            <span class="badge badge-new">📱 Mobile</span>
+        </div>
+
+        <!-- iOS -->
+        <div class="app-card" onclick="downloadApp('ios')">
+            <i class="fab fa-apple icon-black"></i>
+            <h3>iOS (iPhone)</h3>
+            <p>Adicionar à tela inicial</p>
+        </div>
+
+        <!-- PWA -->
+        <div class="app-card" onclick="downloadApp('pwa')">
+            <i class="fas fa-globe icon-purple"></i>
+            <h3>Web App (PWA)</h3>
+            <p>Instale no navegador</p>
+            <span class="badge badge-new">⚡ Rápido</span>
+        </div>
+
+        <!-- Linux -->
+        <div class="app-card card-disabled" onclick="downloadApp('linux')">
+            <i class="fab fa-linux icon-orange"></i>
+            <h3>Linux</h3>
+            <p>Em breve</p>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px;">
+        <a href="index.html" class="btn-download btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar para Agenda
+        </a>
+        <button class="btn-download" id="btnInstallPWA" onclick="installPWA()">
+            <i class="fas fa-download"></i> Instalar App (PWA)
+        </button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="instructions">
+        <h4><i class="fas fa-info-circle"></i> Como instalar:</h4>
+        <ul>
+            <li><i class="fas fa-desktop"></i> <strong>PC (Windows):</strong> Clique em Windows acima, execute o .exe e siga as instruções</li>
+            <li><i class="fas fa-mobile-alt"></i> <strong>Android:</strong> Clique em Android, baixe o APK e permita "Fontes desconhecidas" nas configurações</li>
+            <li><i class="fas fa-safari"></i> <strong>iPhone:</strong> Abra no Safari → toque em <i class="fas fa-share-square"></i> → "Adicionar à Tela Inicial"</li>
+            <li><i class="fas fa-chrome"></i> <strong>PWA (Chrome/Edge):</strong> Clique em "Instalar App" ou no ícone <strong>⊕</strong> na barra do navegador</li>
+        </ul>
+    </div>
+
+    <div style="margin-top:20px; font-size:0.8rem; color:#6b8b9e;">
+        <i class="fas fa-shield-alt"></i> Versão 1.0.0 · Os dados ficam sincronizados em todos os dispositivos
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+(function () {
+    // URL base real do servidor (funciona em localhost, IP local e domínio)
+    var base = window.location.origin + window.location.pathname.replace(/download\.html.*$/, '');
+    var appUrl = base + 'index.html';
+
+    // Mostrar URL abaixo do QR
+    document.getElementById('qrUrl').textContent = appUrl;
+
+    // Gerar QR Code apontando para index.html
+    new QRCode(document.getElementById('qrcode'), {
+        text: appUrl,
+        width: 160,
+        height: 160,
+        colorDark: '#0b2a3b',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Links locais reais (pasta dowloard)
+    var links = {
+        windows: base + 'dowloard/agenda-setup.exe',
+        mac:     base + 'dowloard/agenda.dmg',
+        android: base + 'dowloard/agenda.apk'
+    };
+
+    // PWA install prompt
+    var deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('btnInstallPWA').style.background = '#0f7b3a';
+    });
+
+    window.downloadApp = function (platform) {
+        if (platform === 'pwa' || platform === 'ios') {
+            installPWA();
+            return;
+        }
+        if (platform === 'linux') {
+            showToast('⚠️ Arquivo Linux ainda não disponível. Use o Web App (PWA).');
+            return;
+        }
+
+        var link = links[platform];
+        if (!link) { showToast('⚠️ Download não disponível.'); return; }
+
+        var label = { windows: 'Windows (.exe)', mac: 'macOS (.dmg)', android: 'Android (.apk)' }[platform];
+        showToast('⬇️ Baixando ' + label + '...');
+
+        // Força download direto sem abrir nova aba
+        var a = document.createElement('a');
+        a.href = link;
+        a.download = link.split('/').pop();
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    window.installPWA = function () {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+            return;
+        }
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.includes('android')) {
+            showToast('Android: toque em ⋮ → "Adicionar à tela inicial"');
+        } else if (ua.includes('iphone') || ua.includes('ipad')) {
+            showToast('iPhone: toque em  → "Adicionar à Tela Inicial"');
+        } else {
+            showToast('Clique no ícone ⊕ na barra do navegador para instalar');
+        }
+    };
+
+    function showToast(msg) {
+        var t = document.createElement('div');
+        t.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#1f5e7a;color:white;padding:14px 28px;border-radius:60px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:90%;text-align:center;font-size:0.95rem;';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function () {
+            t.style.opacity = '0'; t.style.transition = '.3s';
+            setTimeout(function () { t.remove(); }, 300);
+        }, 4000);
+    }
+
+    // Sugestão automática por dispositivo
+    var ua = navigator.userAgent.toLowerCase();
+    var tip = '';
+    if      (ua.includes('android'))                    tip = '📱 Android detectado — baixe o APK ou instale o Web App!';
+    else if (ua.includes('iphone') || ua.includes('ipad')) tip = '📱 iPhone detectado — use Safari e adicione à tela inicial!';
+    else if (ua.includes('windows'))                    tip = '💻 Windows detectado — baixe o instalador .exe!';
+    else if (ua.includes('mac'))                        tip = '🍎 macOS detectado — baixe o arquivo .dmg!';
+    if (tip) setTimeout(function () { showToast(tip); }, 1200);
+})();
+</script>
+</body>
+</html>

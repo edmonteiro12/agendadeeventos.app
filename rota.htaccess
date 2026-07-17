@@ -1,0 +1,33 @@
+# .htaccess
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirecionar para HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+    
+    # Cabeçalhos CORS
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+    </IfModule>
+    
+    # Prevenir acesso a arquivos de configuração
+    <FilesMatch "\.(sql|env|json|ini|log)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+    
+    # Rotas para API
+    RewriteRule ^api/(.*)$ backend/api/$1 [L]
+</IfModule>
+
+# Configurações de segurança
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value memory_limit 256M
+</IfModule>

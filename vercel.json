@@ -1,0 +1,22 @@
+{
+  "routes": [
+    { "src": "/",        "dest": "/index.html" },
+    { "src": "/download","dest": "/download.html" },
+    { "src": "/admin",   "dest": "/cadastrousuario.html" }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/dowloard/(.*)",
+      "headers": [
+        { "key": "Content-Disposition", "value": "attachment" }
+      ]
+    }
+  ]
+}

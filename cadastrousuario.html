@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Cadastro de Usuários · Administrativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="jobin.js"></script>
+    <style>
+        /* ========== ESTILOS (MANTIDOS IGUAIS AO SEU ORIGINAL) ========== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background: linear-gradient(145deg, #f6f9fc 0%, #e9f0f5 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .admin-container { max-width: 750px; width: 100%; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-radius: 48px; box-shadow: 0 20px 40px rgba(0,20,30,0.2), 0 6px 12px rgba(0,0,0,0.05); padding: 32px 28px; border: 1px solid rgba(255,255,255,0.5); }
+        h1 { font-weight: 600; font-size: 2rem; color: #0b2a3b; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+        h1 i { color: #2a7faa; }
+        .login-box { background: white; border-radius: 32px; padding: 24px 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .login-box label { font-weight: 500; color: #1a3b4e; display: block; margin: 12px 0 4px; }
+        .login-box input { width: 100%; padding: 12px 16px; border: 2px solid #dce6ec; border-radius: 60px; font-size: 1rem; background: #f8fafc; transition: 0.2s; }
+        .login-box input:focus { outline: none; border-color: #2a7faa; background: white; box-shadow: 0 0 0 4px rgba(42,127,170,0.15); }
+        .btn-primary { width: 100%; margin-top: 16px; background: #1f5e7a; border: none; padding: 14px; border-radius: 60px; color: white; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 16px rgba(26,75,99,0.25); }
+        .btn-primary:hover { background: #134a63; transform: scale(1.02); }
+        .btn-success { background: #0f7b3a; border: none; padding: 10px 20px; border-radius: 60px; color: white; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-success:hover { background: #0a5e2b; transform: scale(1.02); }
+        .btn-danger { background: #b34a4a; border: none; padding: 6px 14px; border-radius: 40px; color: white; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-danger:hover { background: #8a3a3a; }
+        .btn-warning { background: #d97706; border: none; padding: 6px 14px; border-radius: 40px; color: white; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-warning:hover { background: #b85e05; }
+        .btn-secondary { background: #e4edf3; border: none; padding: 10px 20px; border-radius: 60px; color: #1a3b4e; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-secondary:hover { background: #cbdde9; }
+        .btn-sm { padding: 5px 12px; font-size: 0.7rem; border-radius: 30px; }
+        .admin-area { display: none; animation: fadeUp 0.3s ease; }
+        @keyframes fadeUp { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+        .user-list { background: white; border-radius: 20px; padding: 8px 4px; margin: 12px 0 16px; border: 1px solid #dce8f0; max-height: 400px; overflow-y: auto; }
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid #eef4f8; flex-wrap: wrap; gap: 8px; }
+        .user-item:last-child { border-bottom: none; }
+        .user-item .user-info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .user-item .user-name { font-weight: 600; color: #0b2a3b; font-size: 0.95rem; }
+        .user-item .user-badge { font-size: 0.6rem; padding: 2px 10px; border-radius: 40px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .user-badge.admin { background: #d8ecfa; color: #1f5e7a; }
+        .user-badge.active { background: #d2f0df; color: #0f7b3a; }
+        .user-badge.inactive { background: #ffe1d9; color: #b14b2a; }
+        .user-item .user-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+        .form-row input { flex: 1; min-width: 150px; padding: 10px 16px; border: 2px solid #dce6ec; border-radius: 60px; font-size: 0.95rem; background: #f8fafc; }
+        .form-row input:focus { outline: none; border-color: #2a7faa; }
+        .message { padding: 10px 16px; border-radius: 40px; margin-top: 10px; font-weight: 500; display: none; font-size: 0.9rem; }
+        .message.success { background: #d2f0df; color: #0f7b3a; display: block; }
+        .message.error { background: #ffe6e6; color: #c93a3a; display: block; }
+        .info-text { color: #6b8b9e; font-size: 0.8rem; margin-top: 8px; }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: #2a7faa; text-decoration: none; font-weight: 600; margin-top: 16px; transition: 0.2s; }
+        .back-link:hover { color: #0b2a3b; text-decoration: underline; }
+        .login-error { color: #c93a3a; background: #ffe6e6; border-radius: 40px; padding: 8px 16px; font-size: 0.9rem; margin-top: 8px; display: none; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+        .admin-header h2 { font-size: 1.3rem; color: #0b2a3b; display: flex; align-items: center; gap: 8px; }
+        .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; padding: 8px 4px; }
+        .stat-item { background: white; padding: 6px 16px; border-radius: 40px; font-size: 0.8rem; color: #1a3b4e; border: 1px solid #dce8f0; display: flex; align-items: center; gap: 6px; }
+        .stat-item .num { font-weight: 700; color: #0b2a3b; }
+        .stat-item .num.active-num { color: #0f7b3a; }
+        .stat-item .num.inactive-num { color: #b14b2a; }
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,20,30,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+        .modal-card { background: white; max-width: 400px; width: 100%; border-radius: 40px; padding: 28px 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); animation: fadeUp 0.25s; }
+        .modal-card h3 { font-weight: 600; color: #0b2a3b; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
+        .modal-card label { font-weight: 500; color: #1f4b61; display: block; margin: 12px 0 4px; }
+        .modal-card input { width: 100%; padding: 10px 16px; border: 2px solid #dce6ec; border-radius: 60px; background: #fafcfd; font-size: 0.95rem; }
+        .modal-card input:focus { border-color: #2a7faa; outline: none; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .modal-actions button { flex: 1; padding: 12px; border-radius: 60px; border: none; font-weight: 700; cursor: pointer; transition: 0.15s; }
+        .modal-actions .btn-cancel { background: #e4edf3; color: #1a3b4e; }
+        .modal-actions .btn-cancel:hover { background: #cbdde9; }
+        .modal-actions .btn-save { background: #1f5e7a; color: white; }
+        .modal-actions .btn-save:hover { background: #134a63; }
+        @media (max-width: 600px) { .admin-container { padding: 20px 16px; } .form-row { flex-direction: column; } .form-row input { min-width: unset; } .user-item { flex-direction: column; align-items: stretch; } .user-item .user-actions { justify-content: flex-start; } }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h1><i class="fas fa-user-cog"></i> Admin · Usuários</h1>
+    
+    <!-- LOGIN ADMIN -->
+    <div id="loginAdminSection">
+        <div class="login-box">
+            <p style="color:#6b8b9e; margin-bottom:12px; font-size:0.9rem;">
+                <i class="fas fa-lock"></i> Acesso restrito ao administrador
+            </p>
+            <label><i class="fas fa-user"></i> Usuário Admin</label>
+            <input type="text" id="adminLoginUser" value="edmonteiro" placeholder="edmonteiro">
+            <label><i class="fas fa-lock"></i> Senha</label>
+            <input type="password" id="adminLoginPass" placeholder="Digite a senha">
+            <button class="btn-primary" id="adminLoginBtn"><i class="fas fa-sign-in-alt"></i> Acessar</button>
+            <div class="login-error" id="adminLoginError">Usuário ou senha inválidos</div>
+        </div>
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para a Agenda</a>
+    </div>
+
+    <!-- ÁREA ADMIN -->
+    <div class="admin-area" id="adminArea">
+        <div class="admin-header">
+            <h2><i class="fas fa-users"></i> Gerenciar Usuários</h2>
+            <button class="btn-secondary" id="adminLogoutBtn" style="padding:6px 16px; font-size:0.8rem;">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="stats-bar" id="statsBar">
+            <span class="stat-item"><i class="fas fa-users"></i> Total: <span class="num" id="totalUsers">0</span></span>
+            <span class="stat-item"><i class="fas fa-check-circle" style="color:#0f7b3a;"></i> Ativos: <span class="num active-num" id="activeUsers">0</span></span>
+            <span class="stat-item"><i class="fas fa-times-circle" style="color:#b14b2a;"></i> Inativos: <span class="num inactive-num" id="inactiveUsers">0</span></span>
+        </div>
+        
+        <!-- Lista de Usuários -->
+        <div class="user-list" id="userListContainer">
+            <p style="color:#7f9aaa; text-align:center; padding:20px;">Carregando usuários...</p>
+        </div>
+
+        <!-- Cadastrar Novo -->
+        <h4 style="color:#0b2a3b; margin-top:16px;"><i class="fas fa-user-plus"></i> Cadastrar Novo Usuário</h4>
+        <div class="form-row">
+            <input type="text" id="newUsername" placeholder="Nome de usuário (mín. 3 caracteres)">
+            <input type="text" id="newCpf" placeholder="CPF (somente 11 números)" maxlength="14">
+            <input type="password" id="newPassword" placeholder="Senha (mín. 3 caracteres)">
+            <button class="btn-success" id="btnAddUser"><i class="fas fa-save"></i> Cadastrar</button>
+        </div>
+        <div class="message" id="adminMessage"></div>
+        
+        <div class="info-text">
+            <i class="fas fa-info-circle"></i> Usuários inativos não podem acessar a agenda.
+        </div>
+        
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar para a Agenda</a>
+    </div>
+</div>
+
+<!-- MODAL EDITAR SENHA -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-card">
+        <h3><i class="fas fa-edit"></i> Editar Senha</h3>
+        <p style="color:#6b8b9e; font-size:0.9rem; margin-bottom:12px;">
+            Alterando senha de: <strong id="editUsernameDisplay"></strong>
+        </p>
+        <label>Nova Senha</label>
+        <input type="password" id="editPassword" placeholder="Digite a nova senha">
+        <label>Confirmar Senha</label>
+        <input type="password" id="editPasswordConfirm" placeholder="Confirme a nova senha">
+        <div class="modal-actions">
+            <button class="btn-cancel" id="editCancel">Cancelar</button>
+            <button class="btn-save" id="editSave"><i class="fas fa-save"></i> Salvar</button>
+        </div>
+        <div class="message" id="editMessage" style="margin-top:10px;"></div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ============================================================
+    // CONFIGURAÇÃO
+    // ============================================================
+    const ADMIN_USER = 'edmonteiro';
+    const ADMIN_PASS = '155145';
+    const MASTER_ADMIN = 'edmonteiro';
+    const SYNC_CONFIG = window.SYNC_CONFIG || { useJsonBin: false, binId: '', jsonBinKey: '' };
+    const sessionStateKey = 'agenda_admin_session';
+    let users = [];
+    let currentAdminUser = null;
+
+    // DOM
+    const loginSection = document.getElementById('loginAdminSection');
+    const adminArea = document.getElementById('adminArea');
+    const adminLoginUser = document.getElementById('adminLoginUser');
+    const adminLoginPass = document.getElementById('adminLoginPass');
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const adminLoginError = document.getElementById('adminLoginError');
+    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+    const userListContainer = document.getElementById('userListContainer');
+    const newUsername = document.getElementById('newUsername');
+    const newCpf = document.getElementById('newCpf');
+    const newPassword = document.getElementById('newPassword');
+    const btnAddUser = document.getElementById('btnAddUser');
+    const adminMessage = document.getElementById('adminMessage');
+    const totalUsers = document.getElementById('totalUsers');
+    const activeUsers = document.getElementById('activeUsers');
+    const inactiveUsers = document.getElementById('inactiveUsers');
+
+    const editModal = document.getElementById('editModal');
+    const editUsernameDisplay = document.getElementById('editUsernameDisplay');
+    const editPassword = document.getElementById('editPassword');
+    const editPasswordConfirm = document.getElementById('editPasswordConfirm');
+    const editCancel = document.getElementById('editCancel');
+    const editSave = document.getElementById('editSave');
+    const editMessage = document.getElementById('editMessage');
+
+    let editingUser = null;
+
+    // ============================================================
+    // FUNÇÕES DE USUÁRIOS NA NUVEM
+    // ============================================================
+
+    function persistAdminSession() {
+        try {
+            localStorage.setItem(sessionStateKey, JSON.stringify({
+                loggedIn: !!currentAdminUser,
+                user: currentAdminUser
+            }));
+        } catch (e) {}
+    }
+
+    function restoreAdminSession() {
+        try {
+            const raw = localStorage.getItem(sessionStateKey);
+            if (!raw) return false;
+            const snapshot = JSON.parse(raw);
+            if (!snapshot || !snapshot.loggedIn || snapshot.user !== ADMIN_USER) return false;
+            currentAdminUser = snapshot.user;
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+    
+    async function carregarDadosCompletosNuvem() {
+        try {
+            if (!SYNC_CONFIG.useJsonBin || !SYNC_CONFIG.binId) {
+                return false;
+            }
+            
+            console.log('🔍 Carregando dados da nuvem (Admin)...');
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}/latest`, {
+                headers: {
+                    'X-Master-Key': SYNC_CONFIG.jsonBinKey,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const record = data.record;
+                
+                if (record && record.users) {
+                    users = record.users;
+                    // Garantir que o admin master existe
+                    const adminExists = users.find(u => u.username === MASTER_ADMIN);
+                    if (!adminExists) {
+                        users.push({ username: MASTER_ADMIN, password: ADMIN_PASS, active: true });
+                    }
+                    salvarUsuariosLocal(users);
+                    console.log('✅ Usuários carregados da nuvem:', users.length);
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            console.warn('⚠️ Erro ao carregar dados da nuvem:', error);
+            return false;
+        }
+    }
+
+    async function salvarDadosCompletosNuvem() {
+        try {
+            if (!SYNC_CONFIG.useJsonBin || !SYNC_CONFIG.binId) {
+                salvarUsuariosLocal(users);
+                return false;
+            }
+            
+            // Primeiro, buscar os dados atuais do bin para não perder eventos
+            const responseGet = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}/latest`, {
+                headers: {
+                    'X-Master-Key': SYNC_CONFIG.jsonBinKey,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            let dadosAtuais = { events: [], nextId: 1 };
+            if (responseGet.ok) {
+                const data = await responseGet.json();
+                if (data.record) {
+                    dadosAtuais = data.record;
+                }
+            }
+            
+            // Atualizar apenas os usuários
+            dadosAtuais.users = users;
+            dadosAtuais.version = Date.now().toString();
+            dadosAtuais.updatedAt = new Date().toISOString();
+            
+            const response = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': SYNC_CONFIG.jsonBinKey
+                },
+                body: JSON.stringify(dadosAtuais)
+            });
+            
+            if (response.ok) {
+                salvarUsuariosLocal(users);
+                console.log('✅ Usuários salvos na nuvem!');
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.warn('⚠️ Erro ao salvar usuários na nuvem:', error);
+            salvarUsuariosLocal(users);
+            return false;
+        }
+    }
+
+    function salvarUsuariosLocal(usersData) {
+        try { localStorage.setItem('agenda_users', JSON.stringify(usersData)); } catch (e) {}
+    }
+
+    function carregarUsuariosLocal() {
+        try {
+            const data = localStorage.getItem('agenda_users');
+            if (data) {
+                let usersData = JSON.parse(data);
+                const adminExists = usersData.find(u => u.username === MASTER_ADMIN);
+                if (!adminExists) {
+                    usersData.push({ username: MASTER_ADMIN, password: ADMIN_PASS, active: true });
+                }
+                return usersData;
+            }
+        } catch (e) {}
+        return [{ username: 'admin', password: '123', active: true }, { username: MASTER_ADMIN, password: ADMIN_PASS, active: true }];
+    }
+
+    // ============================================================
+    // FUNÇÕES CRUD
+    // ============================================================
+    async function updateUser(username, updates) {
+        const index = users.findIndex(u => u.username === username);
+        if (index !== -1) {
+            users[index] = { ...users[index], ...updates };
+            await salvarDadosCompletosNuvem();
+            return true;
+        }
+        return false;
+    }
+
+    async function deleteUser(username) {
+        if (username === MASTER_ADMIN) return false;
+        users = users.filter(u => u.username !== username);
+        await salvarDadosCompletosNuvem();
+        return true;
+    }
+
+    async function toggleUserActive(username) {
+        if (username === MASTER_ADMIN) return false;
+        const user = users.find(u => u.username === username);
+        if (user) {
+            user.active = !user.active;
+            await salvarDadosCompletosNuvem();
+            return user.active;
+        }
+        return false;
+    }
+
+    async function changePassword(username, newPassword) {
+        if (!newPassword || newPassword.length < 3) return false;
+        const user = users.find(u => u.username === username);
+        if (user) {
+            user.password = newPassword;
+            await salvarDadosCompletosNuvem();
+            return true;
+        }
+        return false;
+    }
+
+    function normalizeCpf(value) {
+        return String(value || '').replace(/\D/g, '');
+    }
+
+    function formatCpfDisplay(cpf) {
+        const c = normalizeCpf(cpf);
+        if (c.length !== 11) return c;
+        return c.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    async function addUser(username, cpf, password) {
+        const normalizedUsername = String(username || '').trim().toLowerCase();
+        const normalizedCpf = normalizeCpf(cpf);
+
+        if (!username || username.length < 3) return { success: false, message: 'Usuário deve ter pelo menos 3 caracteres.' };
+        if (!password || password.length < 3) return { success: false, message: 'Senha deve ter pelo menos 3 caracteres.' };
+        if (!normalizedCpf) return { success: false, message: 'CPF é obrigatório para cadastro.' };
+        if (normalizedCpf.length !== 11) return { success: false, message: 'CPF deve conter exatamente 11 dígitos.' };
+        
+        const duplicateUsername = users.find(u => String(u.username || '').trim().toLowerCase() === normalizedUsername);
+        if (duplicateUsername) return { success: false, message: `Usuário "${username}" já existe.` };
+
+        const duplicateCpf = users.find(u => normalizeCpf(u.cpf || '') === normalizedCpf);
+        if (duplicateCpf) return { success: false, message: `CPF já cadastrado para o usuário "${duplicateCpf.username}".` };
+        
+        users.push({ username, cpf: normalizedCpf, password, active: true });
+        await salvarDadosCompletosNuvem();
+        return { success: true, message: `Usuário "${username}" cadastrado com sucesso!` };
+    }
+
+    // ============================================================
+    // RENDERIZAR LISTA
+    // ============================================================
+    function renderizarUsuarios() {
+        let html = '';
+        
+        users.forEach(u => {
+            const isMaster = u.username === MASTER_ADMIN;
+            const isActive = u.active !== false;
+            
+            const statusBadge = isMaster ? 'admin' : (isActive ? 'active' : 'inactive');
+            const statusLabel = isMaster ? 'Admin Master' : (isActive ? 'Ativo' : 'Inativo');
+            
+            html += `
+                <div class="user-item" data-username="${u.username}">
+                    <div class="user-info">
+                        <span class="user-name"><i class="fas fa-user"></i> ${u.username}</span>
+                        <span class="user-badge ${statusBadge}">${statusLabel}</span>
+                        ${u.cpf ? `<span style="font-size:0.7rem;color:#6b8b9e;"><i class="fas fa-id-card"></i> ${formatCpfDisplay(u.cpf)}</span>` : '<span style="font-size:0.65rem;color:#e07b3b;">sem CPF</span>'}
+                        ${isMaster ? '<span style="font-size:0.6rem;color:#2a7faa;font-weight:600;">🔒</span>' : ''}
+                    </div>
+                    <div class="user-actions">
+                        ${!isMaster ? `
+                            <button class="btn-warning btn-sm btn-toggle-active" data-user="${u.username}" data-active="${isActive}">
+                                <i class="fas ${isActive ? 'fa-pause' : 'fa-play'}"></i>
+                                ${isActive ? 'Desativar' : 'Ativar'}
+                            </button>
+                            <button class="btn-warning btn-sm btn-edit-pass" data-user="${u.username}" style="background:#8b5e3b;">
+                                <i class="fas fa-key"></i> Senha
+                            </button>
+                            <button class="btn-danger btn-sm btn-delete-user" data-user="${u.username}">
+                                <i class="fas fa-trash-alt"></i> Excluir
+                            </button>
+                        ` : `
+                            <button class="btn-warning btn-sm btn-edit-pass" data-user="${u.username}" style="background:#8b5e3b;">
+                                <i class="fas fa-key"></i> Senha
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+        });
+        
+        userListContainer.innerHTML = html || '<p style="color:#7f9aaa; text-align:center; padding:20px;">Nenhum usuário cadastrado.</p>';
+        
+        const total = users.length;
+        const ativos = users.filter(u => u.active !== false).length;
+        const inativos = users.filter(u => u.active === false).length;
+        totalUsers.textContent = total;
+        activeUsers.textContent = ativos;
+        inactiveUsers.textContent = inativos;
+
+        // Event listeners
+        document.querySelectorAll('.btn-toggle-active').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const user = this.dataset.user;
+                const newStatus = await toggleUserActive(user);
+                if (newStatus !== false) {
+                    await carregarDadosCompletosNuvem();
+                    renderizarUsuarios();
+                    showMessage(`Usuário "${user}" ${newStatus ? 'ativado' : 'desativado'}!`, 'success');
+                } else {
+                    showMessage(`Não é possível desativar o usuário master.`, 'error');
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-edit-pass').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const user = this.dataset.user;
+                openEditModal(user);
+            });
+        });
+
+        document.querySelectorAll('.btn-delete-user').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const user = this.dataset.user;
+                if (confirm(`⚠️ Tem certeza que deseja excluir o usuário "${user}" permanentemente?`)) {
+                    if (await deleteUser(user)) {
+                        await carregarDadosCompletosNuvem();
+                        renderizarUsuarios();
+                        showMessage(`Usuário "${user}" excluído com sucesso!`, 'success');
+                    } else {
+                        showMessage(`Não é possível excluir o usuário master.`, 'error');
+                    }
+                }
+            });
+        });
+    }
+
+    // ============================================================
+    // MODAL EDITAR SENHA
+    // ============================================================
+    function openEditModal(username) {
+        editingUser = username;
+        editUsernameDisplay.textContent = username;
+        editPassword.value = '';
+        editPasswordConfirm.value = '';
+        editMessage.style.display = 'none';
+        editModal.style.display = 'flex';
+        editPassword.focus();
+    }
+
+    function closeEditModal() {
+        editModal.style.display = 'none';
+        editingUser = null;
+    }
+
+    async function saveEditPassword() {
+        const newPass = editPassword.value.trim();
+        const confirmPass = editPasswordConfirm.value.trim();
+
+        if (!newPass || newPass.length < 3) {
+            editMessage.textContent = '⚠️ Senha deve ter pelo menos 3 caracteres.';
+            editMessage.className = 'message error';
+            editMessage.style.display = 'block';
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            editMessage.textContent = '⚠️ As senhas não coincidem.';
+            editMessage.className = 'message error';
+            editMessage.style.display = 'block';
+            return;
+        }
+
+        if (await changePassword(editingUser, newPass)) {
+            editMessage.textContent = '✅ Senha alterada com sucesso!';
+            editMessage.className = 'message success';
+            editMessage.style.display = 'block';
+            setTimeout(() => {
+                closeEditModal();
+                renderizarUsuarios();
+                showMessage(`Senha de "${editingUser}" alterada!`, 'success');
+            }, 1000);
+        } else {
+            editMessage.textContent = '⚠️ Erro ao alterar senha.';
+            editMessage.className = 'message error';
+            editMessage.style.display = 'block';
+        }
+    }
+
+    // ============================================================
+    // MENSAGENS
+    // ============================================================
+    function showMessage(text, type) {
+        adminMessage.textContent = text;
+        adminMessage.className = 'message ' + type;
+        adminMessage.style.display = 'block';
+        setTimeout(() => {
+            adminMessage.style.display = 'none';
+        }, 4000);
+    }
+
+    // ============================================================
+    // LOGIN ADMIN
+    // ============================================================
+    async function doAdminLogin() {
+        const user = adminLoginUser.value.trim();
+        const pass = adminLoginPass.value.trim();
+
+        if (user === ADMIN_USER && pass === ADMIN_PASS) {
+            currentAdminUser = user;
+            adminLoginError.style.display = 'none';
+            await carregarDadosCompletosNuvem();
+            loginSection.style.display = 'none';
+            adminArea.style.display = 'block';
+            persistAdminSession();
+            renderizarUsuarios();
+            showMessage('✅ Dados carregados da nuvem!', 'success');
+        } else {
+            adminLoginError.textContent = 'Usuário ou senha incorretos';
+            adminLoginError.style.display = 'block';
+        }
+    }
+
+    function doAdminLogout() {
+        currentAdminUser = null;
+        adminArea.style.display = 'none';
+        loginSection.style.display = 'block';
+        adminLoginPass.value = '';
+        adminLoginError.style.display = 'none';
+        persistAdminSession();
+    }
+
+    // ============================================================
+    // CADASTRAR USUÁRIO
+    // ============================================================
+    async function cadastrarUsuario() {
+        const username = newUsername.value.trim();
+        const cpf = newCpf.value.trim();
+        const password = newPassword.value.trim();
+
+        const result = await addUser(username, cpf, password);
+        if (result.success) {
+            renderizarUsuarios();
+            newUsername.value = '';
+            newCpf.value = '';
+            newPassword.value = '';
+            showMessage(result.message, 'success');
+        } else {
+            showMessage(result.message, 'error');
+        }
+    }
+
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+    adminLoginBtn.addEventListener('click', doAdminLogin);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && loginSection.style.display !== 'none') {
+            doAdminLogin();
+        }
+    });
+
+    adminLogoutBtn.addEventListener('click', doAdminLogout);
+    btnAddUser.addEventListener('click', cadastrarUsuario);
+    newUsername.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') cadastrarUsuario();
+    });
+    newCpf.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') cadastrarUsuario();
+    });
+    newCpf.addEventListener('input', function() {
+        let v = this.value.replace(/\D/g, '').slice(0, 11);
+        if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+        else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+        else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+        this.value = v;
+    });
+    newPassword.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') cadastrarUsuario();
+    });
+
+    editCancel.addEventListener('click', closeEditModal);
+    editModal.addEventListener('click', function(e) {
+        if (e.target === editModal) closeEditModal();
+    });
+    editSave.addEventListener('click', saveEditPassword);
+    editPassword.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveEditPassword();
+    });
+    editPasswordConfirm.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') saveEditPassword();
+    });
+
+    // ============================================================
+    // INICIALIZAÇÃO
+    // ============================================================
+    users = carregarUsuariosLocal();
+
+    const restoredAdminSession = restoreAdminSession();
+    if (restoredAdminSession) {
+        loginSection.style.display = 'none';
+        adminArea.style.display = 'block';
+        renderizarUsuarios();
+    } else {
+        loginSection.style.display = 'block';
+        adminArea.style.display = 'none';
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === sessionStateKey) {
+            const restored = restoreAdminSession();
+            if (restored) {
+                loginSection.style.display = 'none';
+                adminArea.style.display = 'block';
+                renderizarUsuarios();
+            }
+        }
+    });
+
+    window.addEventListener('beforeunload', persistAdminSession);
+
+    setTimeout(async () => {
+        if (loginSection.style.display !== 'none') {
+            await carregarDadosCompletosNuvem();
+        }
+    }, 500);
+
+    setInterval(async () => {
+        if (adminArea.style.display !== 'none') {
+            await carregarDadosCompletosNuvem();
+            renderizarUsuarios();
+        }
+    }, 30000);
+})();
+</script>
+</body>
+</html>

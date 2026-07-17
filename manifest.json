@@ -1,0 +1,18 @@
+{
+    "name": "Agenda+ - Sistema de Agenda Financeiro",
+    "short_name": "Agenda+",
+    "description": "Sistema completo de agenda com controle financeiro",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#f6f9fc",
+    "theme_color": "#1f5e7a",
+    "orientation": "portrait",
+    "categories": ["business", "finance", "productivity"],
+    "icons": [
+        { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+        { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+        { "src": "./icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
+        { "src": "./icons/icon-96.png",  "sizes": "96x96",   "type": "image/png" }
+    ]
+}
