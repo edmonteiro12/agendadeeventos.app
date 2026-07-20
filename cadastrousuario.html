@@ -220,90 +220,51 @@
     
     async function carregarDadosCompletosNuvem() {
         try {
-            if (!SYNC_CONFIG.useJsonBin || !SYNC_CONFIG.binId) {
-                return false;
+            if (!window.SYNC_LOAD) return false;
+            const record = await window.SYNC_LOAD();
+            if (!record) return false;
+            if (record.users && record.users.length > 0) {
+                users = record.users;
+                const adminExists = users.find(u => u.username === MASTER_ADMIN);
+                if (!adminExists) users.push({ username: MASTER_ADMIN, password: ADMIN_PASS, active: true });
+                salvarUsuariosLocal(users);
             }
-            
-            console.log('🔍 Carregando dados da nuvem (Admin)...');
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}/latest`, {
-                headers: {
-                    'X-Master-Key': SYNC_CONFIG.jsonBinKey,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const record = data.record;
-                
-                if (record && record.users) {
-                    users = record.users;
-                    // Garantir que o admin master existe
-                    const adminExists = users.find(u => u.username === MASTER_ADMIN);
-                    if (!adminExists) {
-                        users.push({ username: MASTER_ADMIN, password: ADMIN_PASS, active: true });
-                    }
-                    salvarUsuariosLocal(users);
-                    console.log('✅ Usuários carregados da nuvem:', users.length);
-                    return true;
-                }
-            }
-            return false;
+            return true;
         } catch (error) {
-            console.warn('⚠️ Erro ao carregar dados da nuvem:', error);
+            console.warn('Erro ao carregar dados da nuvem:', error);
             return false;
         }
     }
 
     async function salvarDadosCompletosNuvem() {
         try {
-            if (!SYNC_CONFIG.useJsonBin || !SYNC_CONFIG.binId) {
-                salvarUsuariosLocal(users);
+            salvarUsuariosLocal(users);
+<<<<<<< HEAD
+            if (!window.SYNC_SAVE) {
+                console.warn('Sincronização em nuvem indisponível, dados salvos localmente.');
                 return false;
             }
-            
-            // Primeiro, buscar os dados atuais do bin para não perder eventos
-            const responseGet = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}/latest`, {
-                headers: {
-                    'X-Master-Key': SYNC_CONFIG.jsonBinKey,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
+=======
+            if (!window.SYNC_SAVE) return true;
+>>>>>>> 8205fec1e4b603d94eeb20359a49fbac4cc11661
+            // Carrega dados atuais para não perder eventos
             let dadosAtuais = { events: [], nextId: 1 };
-            if (responseGet.ok) {
-                const data = await responseGet.json();
-                if (data.record) {
-                    dadosAtuais = data.record;
-                }
+            if (window.SYNC_LOAD) {
+                const atual = await window.SYNC_LOAD();
+                if (atual) dadosAtuais = atual;
             }
-            
-            // Atualizar apenas os usuários
-            dadosAtuais.users = users;
-            dadosAtuais.version = Date.now().toString();
+            dadosAtuais.users    = users;
+            dadosAtuais.version  = Date.now().toString();
             dadosAtuais.updatedAt = new Date().toISOString();
-            
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': SYNC_CONFIG.jsonBinKey
-                },
-                body: JSON.stringify(dadosAtuais)
-            });
-            
-            if (response.ok) {
-                salvarUsuariosLocal(users);
-                console.log('✅ Usuários salvos na nuvem!');
-                return true;
-            }
-            return false;
+            return await window.SYNC_SAVE(dadosAtuais);
         } catch (error) {
-            console.warn('⚠️ Erro ao salvar usuários na nuvem:', error);
+            console.warn('Erro ao salvar dados na nuvem:', error);
             salvarUsuariosLocal(users);
             return false;
         }
     }
+
+
 
     function salvarUsuariosLocal(usersData) {
         try { localStorage.setItem('agenda_users', JSON.stringify(usersData)); } catch (e) {}
@@ -392,8 +353,13 @@
         if (duplicateCpf) return { success: false, message: `CPF já cadastrado para o usuário "${duplicateCpf.username}".` };
         
         users.push({ username, cpf: normalizedCpf, password, active: true });
-        await salvarDadosCompletosNuvem();
-        return { success: true, message: `Usuário "${username}" cadastrado com sucesso!` };
+        const saved = await salvarDadosCompletosNuvem();
+        return {
+            success: true,
+            message: saved
+                ? `Usuário "${username}" cadastrado com sucesso!`
+                : `Usuário "${username}" cadastrado localmente, mas não foi possível sincronizar com a nuvem.`
+        };
     }
 
     // ============================================================
@@ -560,12 +526,16 @@
         if (user === ADMIN_USER && pass === ADMIN_PASS) {
             currentAdminUser = user;
             adminLoginError.style.display = 'none';
-            await carregarDadosCompletosNuvem();
+            const loaded = await carregarDadosCompletosNuvem();
             loginSection.style.display = 'none';
             adminArea.style.display = 'block';
             persistAdminSession();
             renderizarUsuarios();
-            showMessage('✅ Dados carregados da nuvem!', 'success');
+            if (loaded) {
+                showMessage('✅ Dados carregados da nuvem!', 'success');
+            } else {
+                showMessage('⚠️ Não foi possível carregar a nuvem. Usando cache local.', 'error');
+            }
         } else {
             adminLoginError.textContent = 'Usuário ou senha incorretos';
             adminLoginError.style.display = 'block';
@@ -652,6 +622,9 @@
         loginSection.style.display = 'none';
         adminArea.style.display = 'block';
         renderizarUsuarios();
+        carregarDadosCompletosNuvem().then(() => {
+            renderizarUsuarios();
+        });
     } else {
         loginSection.style.display = 'block';
         adminArea.style.display = 'none';
@@ -664,6 +637,9 @@
                 loginSection.style.display = 'none';
                 adminArea.style.display = 'block';
                 renderizarUsuarios();
+                carregarDadosCompletosNuvem().then(() => {
+                    renderizarUsuarios();
+                });
             }
         }
     });
@@ -671,8 +647,10 @@
     window.addEventListener('beforeunload', persistAdminSession);
 
     setTimeout(async () => {
-        if (loginSection.style.display !== 'none') {
-            await carregarDadosCompletosNuvem();
+        if (window.SYNC_INIT && !SYNC_CONFIG.binId) await window.SYNC_INIT();
+        await carregarDadosCompletosNuvem();
+        if (adminArea.style.display !== 'none') {
+            renderizarUsuarios();
         }
     }, 500);
 

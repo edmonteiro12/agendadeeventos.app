@@ -539,44 +539,21 @@
     // ============================================================
     async function carregarDadosCompletosNuvem() {
         try {
-            if (!SYNC_CONFIG.useJsonBin || !SYNC_CONFIG.binId) {
-                return false;
+            if (!window.SYNC_LOAD) return false;
+            const record = await window.SYNC_LOAD();
+            if (!record) return false;
+            if (record.events !== undefined) {
+                events = record.events;
+                nextId = record.nextId || events.length + 1;
+                salvarEventosLocal();
             }
-            
-            console.log('🔍 Carregando dados completos da nuvem...');
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}/latest`, {
-                headers: {
-                    'X-Master-Key': SYNC_CONFIG.jsonBinKey,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const record = data.record;
-                
-                if (record) {
-                    // Carregar eventos
-                    if (record.events) {
-                        events = record.events;
-                        nextId = record.nextId || events.length + 1;
-                        salvarEventosLocal();
-                        console.log('✅ Eventos carregados da nuvem:', events.length);
-                    }
-                    
-                    // Carregar usuários
-                    if (record.users) {
-                        users = record.users;
-                        salvarUsuariosLocal(users);
-                        console.log('✅ Usuários carregados da nuvem:', users.length);
-                    }
-                    
-                    return true;
-                }
+            if (record.users && record.users.length > 0) {
+                users = record.users;
+                salvarUsuariosLocal(users);
             }
-            return false;
+            return true;
         } catch (error) {
-            console.warn('⚠️ Erro ao carregar dados da nuvem:', error);
+            console.warn('Erro ao carregar dados da nuvem:', error);
             return false;
         }
     }
@@ -585,75 +562,28 @@
         try {
             salvarEventosLocal();
             salvarUsuariosLocal(users);
-
-            if (!SYNC_CONFIG.useJsonBin || !SYNC_CONFIG.binId) {
-                return true;
+<<<<<<< HEAD
+            if (!window.SYNC_SAVE) {
+                console.warn('Sincronização em nuvem indisponível, dados salvos localmente.');
+                return false;
             }
-            
+=======
+            if (!window.SYNC_SAVE) return true;
+>>>>>>> 8205fec1e4b603d94eeb20359a49fbac4cc11661
             const dados = {
-                events: events,
-                users: users,
-                nextId: nextId,
-                version: Date.now().toString(),
+                events   : events,
+                users    : users,
+                nextId   : nextId,
+                version  : Date.now().toString(),
                 updatedAt: new Date().toISOString()
             };
-            
-            console.log('📤 Salvando dados completos na nuvem...');
-            const response = await fetch(`https://api.jsonbin.io/v3/b/${SYNC_CONFIG.binId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': SYNC_CONFIG.jsonBinKey
-                },
-                body: JSON.stringify(dados)
-            });
-            
-            if (response.ok) {
-                console.log('✅ Dados completos salvos na nuvem!');
-                return true;
-            }
-            
-            if (response.status === 404) {
-                console.log('🔄 Bin não encontrado, tentando criar...');
-                return await criarBinNuvem(dados);
-            }
-            
-            return false;
+            return await window.SYNC_SAVE(dados);
         } catch (error) {
-            console.warn('⚠️ Erro ao salvar dados na nuvem:', error);
+            console.warn('Erro ao salvar dados na nuvem:', error);
             return false;
         }
     }
 
-    async function criarBinNuvem(dados) {
-        try {
-            const response = await fetch('https://api.jsonbin.io/v3/b', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': SYNC_CONFIG.jsonBinKey
-                },
-                body: JSON.stringify(dados)
-            });
-            
-            if (response.ok) {
-                const result = await response.json();
-                const newBinId = result.metadata?.id;
-                if (newBinId) {
-                    console.log('✅ Bin criado com sucesso! ID:', newBinId);
-                    SYNC_CONFIG.binId = newBinId;
-                    localStorage.setItem('agenda_bin_id', newBinId);
-                    salvarEventosLocal();
-                    salvarUsuariosLocal(users);
-                    return true;
-                }
-            }
-            return false;
-        } catch (error) {
-            console.error('❌ Erro ao criar bin:', error);
-            return false;
-        }
-    }
 
     // ============================================================
     // FUNÇÕES FINANCEIRAS
@@ -1282,6 +1212,12 @@
         }
         renderCalendar();
         if (selectedDate) renderDayEvents(selectedDate);
+
+        carregarDadosCompletosNuvem().then(() => {
+            renderCalendar();
+            if (selectedDate) renderDayEvents(selectedDate);
+            atualizarFinanceiro();
+        });
     } else {
         const now = new Date();
         currentYear = now.getFullYear();
@@ -1308,6 +1244,7 @@
     }
 
     setTimeout(async () => {
+        if (window.SYNC_INIT && !SYNC_CONFIG.binId) await window.SYNC_INIT();
         await carregarDadosCompletosNuvem();
         if (agendaSection.style.display !== 'none') {
             applyAuthenticatedView();
@@ -1339,18 +1276,11 @@
     });
 })();
 
- // Registrar Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/agenda/sw.js')
-            .then(reg => console.log('✅ Service Worker registrado'))
-            .catch(err => console.log('❌ Service Worker erro:', err));
-    }
-
-if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/agenda/sw.js')
-            .then(reg => console.log('✅ Service Worker registrado'))
-            .catch(err => console.log('❌ Service Worker erro:', err));
-    }
+// Redirecionar para download.html na primeira visita
+if (!localStorage.getItem('agenda_visited')) {
+    localStorage.setItem('agenda_visited', '1');
+    window.location.href = 'download.html';
+}
 </script>
 </body>
 </html>

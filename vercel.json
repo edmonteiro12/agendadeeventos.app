@@ -1,8 +1,9 @@
 {
   "routes": [
-    { "src": "/",        "dest": "/index.html" },
-    { "src": "/download","dest": "/download.html" },
-    { "src": "/admin",   "dest": "/cadastrousuario.html" }
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/",         "dest": "/index.html" },
+    { "src": "/download", "dest": "/download.html" },
+    { "src": "/admin",    "dest": "/cadastrousuario.html" }
   ],
   "headers": [
     {
@@ -13,9 +14,9 @@
       ]
     },
     {
-      "source": "/dowloard/(.*)",
+      "source": "/api/(.*)",
       "headers": [
-        { "key": "Content-Disposition", "value": "attachment" }
+        { "key": "Cache-Control", "value": "no-store" }
       ]
     }
   ]

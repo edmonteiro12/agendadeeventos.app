@@ -69,58 +69,44 @@
     </div>
 
     <div class="app-grid">
-        <!-- Windows -->
-        <div class="app-card" onclick="downloadApp('windows')">
-            <i class="fab fa-windows icon-blue"></i>
-            <h3>Windows</h3>
-            <p>Instalador .exe</p>
-            <span class="badge badge-popular">⭐ Popular</span>
-        </div>
-
-        <!-- macOS -->
-        <div class="app-card" onclick="downloadApp('mac')">
-            <i class="fab fa-apple icon-black"></i>
-            <h3>macOS</h3>
-            <p>Arquivo .dmg</p>
-        </div>
-
-        <!-- Android -->
+        <!-- Android PWA -->
         <div class="app-card" onclick="downloadApp('android')">
             <i class="fab fa-android icon-green"></i>
             <h3>Android</h3>
-            <p>APK para celular</p>
-            <span class="badge badge-new">📱 Mobile</span>
+            <p>Instalar no celular</p>
+            <span class="badge badge-new">📱 Recomendado</span>
         </div>
 
         <!-- iOS -->
         <div class="app-card" onclick="downloadApp('ios')">
             <i class="fab fa-apple icon-black"></i>
-            <h3>iOS (iPhone)</h3>
+            <h3>iPhone / iPad</h3>
             <p>Adicionar à tela inicial</p>
         </div>
 
-        <!-- PWA -->
+        <!-- PWA Chrome/Edge -->
         <div class="app-card" onclick="downloadApp('pwa')">
             <i class="fas fa-globe icon-purple"></i>
             <h3>Web App (PWA)</h3>
-            <p>Instale no navegador</p>
+            <p>Chrome / Edge / Firefox</p>
             <span class="badge badge-new">⚡ Rápido</span>
         </div>
 
-        <!-- Linux -->
-        <div class="app-card card-disabled" onclick="downloadApp('linux')">
-            <i class="fab fa-linux icon-orange"></i>
-            <h3>Linux</h3>
-            <p>Em breve</p>
+        <!-- Windows -->
+        <div class="app-card" onclick="downloadApp('windows')">
+            <i class="fab fa-windows icon-blue"></i>
+            <h3>Windows</h3>
+            <p>Instalar via navegador</p>
+            <span class="badge badge-popular">💻 Desktop</span>
         </div>
     </div>
 
     <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:10px;">
-        <a href="index.html" class="btn-download btn-secondary">
-            <i class="fas fa-arrow-left"></i> Voltar para Agenda
+        <a href="index.html" class="btn-download" style="background:#0f7b3a;">
+            <i class="fas fa-sign-in-alt"></i> Entrar no Sistema
         </a>
-        <button class="btn-download" id="btnInstallPWA" onclick="installPWA()">
-            <i class="fas fa-download"></i> Instalar App (PWA)
+        <button class="btn-download" id="btnInstallPWA" onclick="downloadApp('pwa')">
+            <i class="fas fa-download"></i> Instalar App
         </button>
     </div>
 
@@ -129,10 +115,10 @@
     <div class="instructions">
         <h4><i class="fas fa-info-circle"></i> Como instalar:</h4>
         <ul>
-            <li><i class="fas fa-desktop"></i> <strong>PC (Windows):</strong> Clique em Windows acima, execute o .exe e siga as instruções</li>
-            <li><i class="fas fa-mobile-alt"></i> <strong>Android:</strong> Clique em Android, baixe o APK e permita "Fontes desconhecidas" nas configurações</li>
-            <li><i class="fas fa-safari"></i> <strong>iPhone:</strong> Abra no Safari → toque em <i class="fas fa-share-square"></i> → "Adicionar à Tela Inicial"</li>
-            <li><i class="fas fa-chrome"></i> <strong>PWA (Chrome/Edge):</strong> Clique em "Instalar App" ou no ícone <strong>⊕</strong> na barra do navegador</li>
+            <li><i class="fab fa-android"></i> <strong>Android (Chrome):</strong> Toque em ⋮ → "Adicionar à tela inicial" ou "Instalar app"</li>
+            <li><i class="fab fa-apple"></i> <strong>iPhone / iPad (Safari):</strong> Toque em <i class="fas fa-share-square"></i> → "Adicionar à Tela Inicial"</li>
+            <li><i class="fab fa-chrome"></i> <strong>PC (Chrome / Edge):</strong> Clique em "Instalar App" acima ou no ⊕ na barra do navegador</li>
+            <li><i class="fas fa-wifi"></i> <strong>Funciona offline</strong> após instalar — dados sincronizados em todos os dispositivos</li>
         </ul>
     </div>
 
@@ -161,13 +147,6 @@
         correctLevel: QRCode.CorrectLevel.H
     });
 
-    // Links locais reais (pasta dowloard)
-    var links = {
-        windows: base + 'dowloard/agenda-setup.exe',
-        mac:     base + 'dowloard/agenda.dmg',
-        android: base + 'dowloard/agenda.apk'
-    };
-
     // PWA install prompt
     var deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', function (e) {
@@ -177,43 +156,43 @@
     });
 
     window.downloadApp = function (platform) {
-        if (platform === 'pwa' || platform === 'ios') {
-            installPWA();
-            return;
-        }
-        if (platform === 'linux') {
-            showToast('⚠️ Arquivo Linux ainda não disponível. Use o Web App (PWA).');
-            return;
-        }
-
-        var link = links[platform];
-        if (!link) { showToast('⚠️ Download não disponível.'); return; }
-
-        var label = { windows: 'Windows (.exe)', mac: 'macOS (.dmg)', android: 'Android (.apk)' }[platform];
-        showToast('⬇️ Baixando ' + label + '...');
-
-        // Força download direto sem abrir nova aba
-        var a = document.createElement('a');
-        a.href = link;
-        a.download = link.split('/').pop();
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    };
-
-    window.installPWA = function () {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
-            return;
-        }
         var ua = navigator.userAgent.toLowerCase();
-        if (ua.includes('android')) {
-            showToast('Android: toque em ⋮ → "Adicionar à tela inicial"');
-        } else if (ua.includes('iphone') || ua.includes('ipad')) {
-            showToast('iPhone: toque em  → "Adicionar à Tela Inicial"');
-        } else {
-            showToast('Clique no ícone ⊕ na barra do navegador para instalar');
+        var isAndroid = ua.includes('android');
+        var isIOS = ua.includes('iphone') || ua.includes('ipad');
+
+        if (platform === 'android') {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+                return;
+            }
+            if (isAndroid) {
+                showToast('Android: toque em ⋮ no Chrome → "Adicionar à tela inicial" ou "Instalar app"');
+            } else {
+                showToast('Abra este link no Chrome do Android para instalar o app');
+            }
+            return;
+        }
+
+        if (platform === 'ios') {
+            showToast('iPhone: abra no Safari → toque em 📤 → "Adicionar à Tela Inicial"');
+            return;
+        }
+
+        if (platform === 'pwa' || platform === 'windows') {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
+                return;
+            }
+            if (isIOS) {
+                showToast('iPhone: abra no Safari → toque em 📤 → "Adicionar à Tela Inicial"');
+            } else if (isAndroid) {
+                showToast('Android: toque em ⋮ no Chrome → "Adicionar à tela inicial"');
+            } else {
+                showToast('Clique no ⊕ na barra do navegador para instalar o app no PC');
+            }
+            return;
         }
     };
 
@@ -231,10 +210,10 @@
     // Sugestão automática por dispositivo
     var ua = navigator.userAgent.toLowerCase();
     var tip = '';
-    if      (ua.includes('android'))                    tip = '📱 Android detectado — baixe o APK ou instale o Web App!';
-    else if (ua.includes('iphone') || ua.includes('ipad')) tip = '📱 iPhone detectado — use Safari e adicione à tela inicial!';
-    else if (ua.includes('windows'))                    tip = '💻 Windows detectado — baixe o instalador .exe!';
-    else if (ua.includes('mac'))                        tip = '🍎 macOS detectado — baixe o arquivo .dmg!';
+    if      (ua.includes('android'))                         tip = '📱 Android detectado — toque em Android acima para instalar!';
+    else if (ua.includes('iphone') || ua.includes('ipad'))   tip = '📱 iPhone detectado — use Safari e adicione à tela inicial!';
+    else if (ua.includes('windows'))                         tip = '💻 Windows detectado — clique em "Instalar App" para adicionar ao PC!';
+    else if (ua.includes('mac'))                             tip = '🍎 macOS detectado — clique em "Instalar App" para adicionar ao Mac!';
     if (tip) setTimeout(function () { showToast(tip); }, 1200);
 })();
 </script>
