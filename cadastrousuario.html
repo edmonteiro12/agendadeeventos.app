@@ -239,14 +239,10 @@
     async function salvarDadosCompletosNuvem() {
         try {
             salvarUsuariosLocal(users);
-<<<<<<< HEAD
             if (!window.SYNC_SAVE) {
                 console.warn('Sincronização em nuvem indisponível, dados salvos localmente.');
                 return false;
             }
-=======
-            if (!window.SYNC_SAVE) return true;
->>>>>>> 8205fec1e4b603d94eeb20359a49fbac4cc11661
             // Carrega dados atuais para não perder eventos
             let dadosAtuais = { events: [], nextId: 1 };
             if (window.SYNC_LOAD) {
@@ -321,6 +317,8 @@
         const user = users.find(u => u.username === username);
         if (user) {
             user.password = newPassword;
+            user.mustChangePassword = false;
+            user.passwordLastChanged = new Date().toISOString();
             await salvarDadosCompletosNuvem();
             return true;
         }
@@ -352,7 +350,15 @@
         const duplicateCpf = users.find(u => normalizeCpf(u.cpf || '') === normalizedCpf);
         if (duplicateCpf) return { success: false, message: `CPF já cadastrado para o usuário "${duplicateCpf.username}".` };
         
-        users.push({ username, cpf: normalizedCpf, password, active: true });
+        users.push({
+            username,
+            cpf: normalizedCpf,
+            password,
+            active: true,
+            mustChangePassword: true,
+            createdAt: new Date().toISOString(),
+            passwordLastChanged: null
+        });
         const saved = await salvarDadosCompletosNuvem();
         return {
             success: true,
@@ -374,13 +380,17 @@
             
             const statusBadge = isMaster ? 'admin' : (isActive ? 'active' : 'inactive');
             const statusLabel = isMaster ? 'Admin Master' : (isActive ? 'Ativo' : 'Inativo');
+            const passwordBadge = u.mustChangePassword ? '<span class="user-badge inactive">Senha temporária</span>' : '';
+            const passwordInfo = u.passwordLastChanged ? `<span style="font-size:0.7rem;color:#6b8b9e;">Alterada em ${new Date(u.passwordLastChanged).toLocaleDateString('pt-BR')}</span>` : '';
             
             html += `
                 <div class="user-item" data-username="${u.username}">
                     <div class="user-info">
                         <span class="user-name"><i class="fas fa-user"></i> ${u.username}</span>
                         <span class="user-badge ${statusBadge}">${statusLabel}</span>
+                        ${passwordBadge}
                         ${u.cpf ? `<span style="font-size:0.7rem;color:#6b8b9e;"><i class="fas fa-id-card"></i> ${formatCpfDisplay(u.cpf)}</span>` : '<span style="font-size:0.65rem;color:#e07b3b;">sem CPF</span>'}
+                        ${passwordInfo}
                         ${isMaster ? '<span style="font-size:0.6rem;color:#2a7faa;font-weight:600;">🔒</span>' : ''}
                     </div>
                     <div class="user-actions">

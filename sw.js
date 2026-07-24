@@ -1,7 +1,8 @@
-const CACHE = 'agenda-v1';
+const CACHE = 'agenda-v2';
 const ASSETS = [
     './',
     './index.html',
+    './cadastrousuario.html',
     './download.html',
     './manifest.json',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'

@@ -132,13 +132,6 @@
         .sync-status.error { color: #c93a3a; }
         .admin-link { display: inline-block; margin-top: 12px; color: #6b8b9e; font-size: 0.85rem; text-decoration: none; transition: 0.2s; }
         .admin-link:hover { color: #2a7faa; text-decoration: underline; }
-       <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-152.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Agenda+">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1f5e7a">
         @media (max-width: 600px) { .app-container { padding: 16px; } .calendar-grid { gap: 4px; padding: 8px; } .cal-day { min-height: 60px; padding: 6px 2px; font-size: 0.75rem; } .finance-detalhes .item { flex-direction: column; align-items: flex-start; } .monthly-table { font-size: 0.75rem; } .monthly-table th, .monthly-table td { padding: 6px 8px; } }
         
     </style>
@@ -260,6 +253,23 @@
     </div>
 </div>
 
+<!-- MODAL ALTERAR SENHA -->
+<div class="modal-overlay" id="passwordResetModal">
+    <div class="modal-card">
+        <h3><i class="fas fa-key"></i> Alterar Senha</h3>
+        <p style="color:#6b8b9e; margin-bottom:16px;">Sua senha provisória precisa ser alterada antes de acessar a Agenda.</p>
+        <label>Nova senha</label>
+        <input type="password" id="resetPassword" placeholder="Digite a nova senha" autocomplete="new-password">
+        <label>Confirmar senha</label>
+        <input type="password" id="resetPasswordConfirm" placeholder="Confirme a nova senha" autocomplete="new-password">
+        <div class="message error" id="resetPasswordError" style="display:none; margin-top:12px;"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" id="resetPasswordCancel">Cancelar</button>
+            <button type="button" class="btn-save" id="resetPasswordSave"><i class="fas fa-save"></i> Salvar</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div class="toast-message" id="toastMessage">Agenda salva com sucesso!</div>
 
@@ -324,6 +334,14 @@
     const evValor = document.getElementById('evValor');
     const evStatusPagamento = document.getElementById('evStatusPagamento');
     const modalCancel = document.getElementById('modalCancel');
+
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    const resetPasswordInput = document.getElementById('resetPassword');
+    const resetPasswordConfirm = document.getElementById('resetPasswordConfirm');
+    const resetPasswordSave = document.getElementById('resetPasswordSave');
+    const resetPasswordCancel = document.getElementById('resetPasswordCancel');
+    const resetPasswordError = document.getElementById('resetPasswordError');
+    let pendingPasswordResetUser = null;
 
     const localSuggestions = document.getElementById('localSuggestions');
     const empresaSuggestions = document.getElementById('empresaSuggestions');
@@ -562,14 +580,10 @@
         try {
             salvarEventosLocal();
             salvarUsuariosLocal(users);
-<<<<<<< HEAD
             if (!window.SYNC_SAVE) {
                 console.warn('Sincronização em nuvem indisponível, dados salvos localmente.');
                 return false;
             }
-=======
-            if (!window.SYNC_SAVE) return true;
->>>>>>> 8205fec1e4b603d94eeb20359a49fbac4cc11661
             const dados = {
                 events   : events,
                 users    : users,
@@ -1114,6 +1128,11 @@
         const foundUser = users.find(u => u.username === user && u.password === pass && u.active !== false);
         
         if (foundUser) {
+            if (foundUser.mustChangePassword) {
+                pendingPasswordResetUser = foundUser.username;
+                openResetPasswordModal(foundUser.username);
+                return;
+            }
             currentUser = user;
             loginError.style.display = 'none';
             persistSharedState();
@@ -1123,6 +1142,57 @@
             loginError.textContent = 'Usuário ou senha inválidos, ou usuário inativo.';
             loginError.style.display = 'block';
         }
+    }
+
+    function openResetPasswordModal(username) {
+        if (!pendingPasswordResetUser || pendingPasswordResetUser !== username) return;
+        resetPasswordError.style.display = 'none';
+        resetPasswordInput.value = '';
+        resetPasswordConfirm.value = '';
+        passwordResetModal.style.display = 'flex';
+        resetPasswordInput.focus();
+    }
+
+    function closeResetPasswordModal() {
+        passwordResetModal.style.display = 'none';
+        pendingPasswordResetUser = null;
+    }
+
+    async function saveResetPassword() {
+        const newPassword = resetPasswordInput.value.trim();
+        const confirmPassword = resetPasswordConfirm.value.trim();
+
+        if (!newPassword || newPassword.length < 3) {
+            resetPasswordError.textContent = 'A senha deve ter pelo menos 3 caracteres.';
+            resetPasswordError.style.display = 'block';
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            resetPasswordError.textContent = 'As senhas não coincidem.';
+            resetPasswordError.style.display = 'block';
+            return;
+        }
+
+        const user = users.find(u => u.username === pendingPasswordResetUser);
+        if (!user) {
+            resetPasswordError.textContent = 'Usuário não encontrado.';
+            resetPasswordError.style.display = 'block';
+            return;
+        }
+
+        user.password = newPassword;
+        user.mustChangePassword = false;
+        user.passwordLastChanged = new Date().toISOString();
+        await salvarUsuariosLocal(users);
+        await salvarDadosCompletosNuvem();
+        closeResetPasswordModal();
+
+        currentUser = user.username;
+        loginError.style.display = 'none';
+        persistSharedState();
+        applyAuthenticatedView();
+        showToast('✅ Senha alterada com sucesso! Bem-vindo, ' + user.username + '!');
     }
 
     // ============================================================
@@ -1182,6 +1252,12 @@
     modalCancel.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', function(e) {
         if (e.target === modalOverlay) closeModal();
+    });
+
+    resetPasswordSave.addEventListener('click', saveResetPassword);
+    resetPasswordCancel.addEventListener('click', closeResetPasswordModal);
+    passwordResetModal.addEventListener('click', function(e) {
+        if (e.target === passwordResetModal) closeResetPasswordModal();
     });
 
     eventForm.addEventListener('submit', function(e) {
@@ -1276,10 +1352,9 @@
     });
 })();
 
-// Redirecionar para download.html na primeira visita
+// Mantém a página principal aberta e deixa o download como ação opcional.
 if (!localStorage.getItem('agenda_visited')) {
     localStorage.setItem('agenda_visited', '1');
-    window.location.href = 'download.html';
 }
 </script>
 </body>
